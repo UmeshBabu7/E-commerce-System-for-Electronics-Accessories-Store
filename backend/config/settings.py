@@ -26,7 +26,7 @@ THIRD_PART_APPS = [
     "rest_framework",
 ]
 
-LOCAL_APPS = []
+LOCAL_APPS = ["accounts"]
 
 INSTALLED_APPS += THIRD_PART_APPS + LOCAL_APPS
 
@@ -69,6 +69,7 @@ DATABASES = {
     )
 }
 
+AUTH_USER_MODEL = "accounts.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
