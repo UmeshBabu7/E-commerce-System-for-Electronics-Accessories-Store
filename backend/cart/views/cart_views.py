@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsCustomer
 
 from cart.models import Cart, CartItem
 from cart.serializers import CartSerializer, AddToCartSerializer
@@ -9,7 +9,7 @@ from products.models import Product, ProductVariation
 
 
 class CartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def get_or_create_cart(self, user):
         cart, _ = Cart.objects.get_or_create(user=user)

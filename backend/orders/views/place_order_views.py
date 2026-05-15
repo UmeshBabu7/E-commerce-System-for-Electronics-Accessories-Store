@@ -75,20 +75,20 @@ class PlaceOrderView(APIView):
                         notes=f"Order #{order.id} (variation: {item.variation.attribute}={item.variation.value})",
                         performed_by=request.user,
                     )
+                else:
+                    prev = item.product.stock_level
+                    item.product.stock_level -= item.quantity
+                    item.product.save()
 
-                prev = item.product.stock_level
-                item.product.stock_level -= item.quantity
-                item.product.save()
-
-                StockAdjustment.objects.create(
-                    product=item.product,
-                    adjustment_type="sale",
-                    quantity=-item.quantity,
-                    previous_stock=prev,
-                    new_stock=item.product.stock_level,
-                    notes=f"Order #{order.id}",
-                    performed_by=request.user,
-                )
+                    StockAdjustment.objects.create(
+                        product=item.product,
+                        adjustment_type="sale",
+                        quantity=-item.quantity,
+                        previous_stock=prev,
+                        new_stock=item.product.stock_level,
+                        notes=f"Order #{order.id}",
+                        performed_by=request.user,
+                    )
 
             cart.items.all().delete()
             return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)

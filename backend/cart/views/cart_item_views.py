@@ -1,14 +1,14 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsCustomer
 
 from cart.models import Cart, CartItem
 from cart.serializers import CartSerializer, UpdateCartItemSerializer
 
 
 class CartItemView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def patch(self, request, item_id):
         serializer = UpdateCartItemSerializer(data=request.data)
