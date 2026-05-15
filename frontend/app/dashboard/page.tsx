@@ -16,11 +16,15 @@ import {
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   Cell,
+  CartesianGrid,
+  Legend,
 } from "recharts";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -163,6 +167,54 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Trend (Last 30 Days)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {data.revenue_trend && data.revenue_trend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={data.revenue_trend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip
+                  formatter={(value: number, name: string) =>
+                    name === "revenue"
+                      ? [`$${Number(value).toFixed(2)}`, "Revenue"]
+                      : [value, "Orders"]
+                  }
+                />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={false}
+                  name="revenue"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="orders"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={false}
+                  name="orders"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground py-16 text-center">
+              No revenue data for the last 30 days
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
