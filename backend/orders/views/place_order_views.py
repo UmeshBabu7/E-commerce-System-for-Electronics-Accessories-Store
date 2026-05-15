@@ -62,9 +62,16 @@ class PlaceOrderView(APIView):
                     cost_price=item.product.cost_price,
                 )
 
+                if item.variation:
+                    prev_var = item.variation.stock_level
+                    item.variation.stock_level -= item.quantity
+                    item.variation.save()
+
+                #
                 prev = item.product.stock_level
                 item.product.stock_level -= item.quantity
                 item.product.save()
+
                 StockAdjustment.objects.create(
                     product=item.product,
                     adjustment_type="sale",
