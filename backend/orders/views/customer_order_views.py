@@ -1,12 +1,12 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsCustomer
 
 from orders.models import Order
 from orders.serializers import OrderSerializer
 
 
 class CustomerOrderListView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
     serializer_class = OrderSerializer
 
     def get_queryset(self):
@@ -14,7 +14,7 @@ class CustomerOrderListView(generics.ListAPIView):
 
 
 class CustomerOrderDetailView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
     serializer_class = OrderSerializer
 
     def get_queryset(self):

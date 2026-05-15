@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsCustomer
 from django.db import transaction
 
 from orders.models import Order, OrderItem
@@ -11,7 +11,7 @@ from inventory.models import StockAdjustment
 
 
 class PlaceOrderView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     @transaction.atomic
     def post(self, request):
