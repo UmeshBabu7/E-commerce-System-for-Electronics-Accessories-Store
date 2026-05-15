@@ -66,8 +66,16 @@ class PlaceOrderView(APIView):
                     prev_var = item.variation.stock_level
                     item.variation.stock_level -= item.quantity
                     item.variation.save()
+                    StockAdjustment.objects.create(
+                        product=item.product,
+                        adjustment_type="sale",
+                        quantity=-item.quantity,
+                        previous_stock=prev_var,
+                        new_stock=item.variation.stock_level,
+                        notes=f"Order #{order.id} (variation: {item.variation.attribute}={item.variation.value})",
+                        performed_by=request.user,
+                    )
 
-                #
                 prev = item.product.stock_level
                 item.product.stock_level -= item.quantity
                 item.product.save()

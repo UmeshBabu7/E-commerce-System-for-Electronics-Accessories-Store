@@ -37,6 +37,12 @@ export default function AnalyticsPage() {
   const { isAdmin, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.analytics.profit(period),
+    queryFn: () => analyticsApi.profit(period).then((r) => r.data),
+    enabled: isAdmin,
+  });
+
   useEffect(() => {
     if (!authLoading && !isAdmin) {
       router.push("/dashboard");
@@ -45,10 +51,6 @@ export default function AnalyticsPage() {
 
   if (authLoading) return <LoadingSpinner />;
   if (!isAdmin) return null;
-  const { data, isLoading } = useQuery({
-    queryKey: queryKeys.analytics.profit(period),
-    queryFn: () => analyticsApi.profit(period).then((r) => r.data),
-  });
 
   const handleDownload = async (type: "sales" | "orders") => {
     try {
