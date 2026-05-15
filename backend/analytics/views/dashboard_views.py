@@ -1,4 +1,5 @@
 from django.db.models import Sum, Count, F
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
 
@@ -65,6 +66,25 @@ class DashboardView(APIView):
 
         orders_by_status = Order.objects.values("status").annotate(count=Count("id"))
 
+        revenue_trend = (
+            Order.objects.filter(
+                created_at__gte=thirty_days_ago,
+                status__in=["confirmed", "processing", "shipped", "delivered"],
+            )
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(revenue=Sum("total_amount"), orders=Count("id"))
+            .order_by("day")
+        )
+        revenue_trend_data = [
+            {
+                "date": row["day"].strftime("%b %d"),
+                "revenue": float(row["revenue"] or 0),
+                "orders": row["orders"],
+            }
+            for row in revenue_trend
+        ]
+
         return Response(
             {
                 "kpi": {
@@ -80,5 +100,6 @@ class DashboardView(APIView):
                 "weekly_top_products": list(weekly_top),
                 "monthly_top_products": list(monthly_top),
                 "orders_by_status": list(orders_by_status),
+                "revenue_trend": revenue_trend_data,
             }
         )
