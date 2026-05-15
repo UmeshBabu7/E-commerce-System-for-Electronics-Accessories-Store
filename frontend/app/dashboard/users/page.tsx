@@ -1,5 +1,7 @@
 "use client";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatDate } from "@/lib/utils";
@@ -22,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { useAuth } from "@/hooks/useAuth";
 
 const ROLE_COLORS: Record<string, string> = {
   admin: "destructive",
@@ -31,6 +34,15 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function UsersPage() {
   const qc = useQueryClient();
+  const { isAdmin, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      router.push("/dashboard");
+    }
+  }, [isAdmin, authLoading, router]);
+
   const { data: users, isLoading } = useQuery({
     queryKey: queryKeys.auth.users,
     queryFn: () => authApi.listUsers().then((r) => r.data),
@@ -51,6 +63,9 @@ export default function UsersPage() {
   const usersArray = Array.isArray(users)
     ? users
     : ((users as any)?.results ?? []);
+
+  if (authLoading) return <LoadingSpinner />;
+  if (!isAdmin) return null;
 
   return (
     <div className="space-y-4">

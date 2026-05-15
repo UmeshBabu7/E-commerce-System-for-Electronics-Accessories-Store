@@ -13,7 +13,13 @@ export default function ShopLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !currentUser) router.push("/auth/login");
+    if (!isLoading) {
+      if (!currentUser) {
+        router.push("/auth/login");
+      } else if (currentUser.role !== "customer") {
+        router.push("/dashboard");
+      }
+    }
   }, [currentUser, isLoading, router]);
 
   if (isLoading)
@@ -22,7 +28,7 @@ export default function ShopLayout({
         Loading...
       </div>
     );
-  if (!currentUser) return null;
+  if (!currentUser || currentUser.role !== "customer") return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

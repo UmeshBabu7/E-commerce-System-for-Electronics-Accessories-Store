@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { analyticsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatCurrency } from "@/lib/utils";
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Download } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LineChart,
   Line,
@@ -32,6 +34,17 @@ function downloadBlob(blob: Blob, filename: string) {
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<"monthly" | "weekly">("monthly");
+  const { isAdmin, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      router.push("/dashboard");
+    }
+  }, [isAdmin, authLoading, router]);
+
+  if (authLoading) return <LoadingSpinner />;
+  if (!isAdmin) return null;
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.analytics.profit(period),
     queryFn: () => analyticsApi.profit(period).then((r) => r.data),
