@@ -2,13 +2,19 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { analyticsApi } from "@/lib/api";
+import { analyticsApi, inventoryApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { Download } from "lucide-react";
+import {
+  Download,
+  Package,
+  AlertTriangle,
+  XCircle,
+  DollarSign,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LineChart,
@@ -40,6 +46,12 @@ export default function AnalyticsPage() {
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.analytics.profit(period),
     queryFn: () => analyticsApi.profit(period).then((r) => r.data),
+    enabled: isAdmin,
+  });
+
+  const { data: inv } = useQuery({
+    queryKey: ["inventory", "overview"],
+    queryFn: () => inventoryApi.overview().then((r) => r.data),
     enabled: isAdmin,
   });
 
@@ -100,6 +112,52 @@ export default function AnalyticsPage() {
           </Button>
         ))}
       </div>
+
+      {inv && (
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Inventory Status</h2>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[
+              {
+                label: "Total Products",
+                value: inv.total_products,
+                icon: Package,
+                color: "text-blue-600",
+              },
+              {
+                label: "Total Stock Value",
+                value: formatCurrency(inv.total_stock_value),
+                icon: DollarSign,
+                color: "text-green-600",
+              },
+              {
+                label: "Low Stock Items",
+                value: inv.low_stock_count,
+                icon: AlertTriangle,
+                color: "text-yellow-600",
+              },
+              {
+                label: "Out of Stock",
+                value: inv.out_of_stock_count,
+                icon: XCircle,
+                color: "text-red-600",
+              },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <Card key={label}>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-5 w-5 ${color}`} />
+                    <div>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="text-xl font-bold">{value}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {data && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
