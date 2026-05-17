@@ -1,16 +1,16 @@
-# 🛒 Electronics Accessories Store — E-commerce System
+# Electronics Accessories Store — E-commerce System
 
 A full-stack e-commerce system for an electronics accessories store, built with **Django REST Framework** on the backend and **Next.js** on the frontend.
 
 ---
 
-## 📌 Overview
+## Overview
 
 This project is a complete web application for managing and shopping at an electronics accessories store. Admins and staff can manage products, inventory, and orders, while customers can browse products, add items to their cart, and place orders.
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 E-commerce-System/
@@ -36,7 +36,7 @@ E-commerce-System/
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 ### Backend
 | Technology | Version | Purpose |
@@ -62,15 +62,15 @@ E-commerce-System/
 
 ---
 
-## 🔑 Features
+## Features
 
-### 👤 User System
+### User System
 - **3 roles:** `customer`, `staff`, `admin`
 - Email-based login with JWT tokens
 - Profile management (phone, address)
 - Token blacklisting on logout
 
-### 🛍️ Products
+### Products
 - SKU-based product management
 - Multiple categories per product (ManyToMany)
 - Separate cost price and selling price
@@ -78,21 +78,21 @@ E-commerce-System/
 - Product image uploads
 - Low stock alerts via reorder point
 
-### 📦 Inventory
+### Inventory
 - Full stock adjustment history (receive, sale, return, damage, manual)
 - Tracks previous and new stock levels per adjustment
 - Records which user performed each adjustment
 
-### 🛒 Cart
+### Cart
 - Per-user shopping cart
 - Add, update, and remove cart items
 
-### 📋 Orders
+### Orders
 - Order status lifecycle: `pending → confirmed → processing → shipped → delivered → cancelled`
 - Stores shipping address, phone, and notes
 - Order items snapshot price at time of purchase
 
-### 📊 Analytics (Admin only)
+### Analytics (Admin only)
 - Dashboard overview
 - Profit reports
 - Sales analytics
@@ -100,7 +100,7 @@ E-commerce-System/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Backend Setup
 
@@ -152,7 +152,7 @@ Backend API runs at: `http://localhost:8000`
 
 ---
 
-## 🔐 API Endpoints
+## API Endpoints
 
 ### Authentication
 ```
@@ -194,7 +194,7 @@ GET    /api/analytics/reports/   → CSV export
 
 ---
 
-## 🗃️ Data Model Overview
+## Data Model Overview
 
 ```
 User ──────────────────── Order ─── OrderItem ─── Product
@@ -207,7 +207,7 @@ User ──────────────────── Order ──�
 
 ---
 
-## 📁 Frontend Pages
+## Frontend Pages
 
 | Page | Path | Access |
 |------|------|--------|
@@ -227,7 +227,7 @@ User ──────────────────── Order ──�
 
 ---
 
-## 🛠️ Developer Notes
+## Notes
 
 - Backend and frontend are fully decoupled and run independently
 - JWT tokens are stored in cookies via `js-cookie`
