@@ -46,6 +46,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "sku",
             "name",
             "categories",
+            "cost_price",
             "selling_price",
             "stock_level",
             "reorder_point",
