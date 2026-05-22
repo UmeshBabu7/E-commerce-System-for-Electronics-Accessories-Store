@@ -3,7 +3,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.db.models import F
 from products.models import Product
-from products.serializers import ProductSerializer, ProductListSerializer
+from products.serializers import (
+    ProductSerializer,
+    ProductListSerializer,
+    CustomerProductSerializer,
+)
 from accounts.permissions import IsStaffOrAdmin
 
 
@@ -34,9 +38,12 @@ class ProductListCreateView(generics.ListCreateAPIView):
         return queryset
 
     def get_serializer_class(self):
-        if self.request.method == "GET":
+        if self.request.method != "GET":
+            return ProductSerializer
+        user = self.request.user
+        if user and user.is_authenticated and user.role in ["staff", "admin"]:
             return ProductListSerializer
-        return ProductSerializer
+        return CustomerProductSerializer
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -46,7 +53,14 @@ class ProductListCreateView(generics.ListCreateAPIView):
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.prefetch_related("categories", "variations")
-    serializer_class = ProductSerializer
+
+    def get_serializer_class(self):
+        if self.request.method != "GET":
+            return ProductSerializer
+        user = self.request.user
+        if user and user.is_authenticated and user.role in ["staff", "admin"]:
+            return ProductSerializer
+        return CustomerProductSerializer
 
     def get_permissions(self):
         if self.request.method == "GET":

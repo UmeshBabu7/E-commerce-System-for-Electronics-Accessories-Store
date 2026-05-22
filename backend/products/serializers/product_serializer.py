@@ -37,6 +37,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
+    variations = ProductVariationSerializer(many=True, read_only=True)
     is_low_stock = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -46,7 +47,31 @@ class ProductListSerializer(serializers.ModelSerializer):
             "sku",
             "name",
             "categories",
+            "variations",
             "cost_price",
+            "selling_price",
+            "stock_level",
+            "reorder_point",
+            "is_low_stock",
+            "image",
+            "is_active",
+        ]
+
+
+class CustomerProductSerializer(serializers.ModelSerializer):
+    categories = CategorySerializer(many=True, read_only=True)
+    variations = ProductVariationSerializer(many=True, read_only=True)
+    is_low_stock = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "sku",
+            "name",
+            "description",
+            "categories",
+            "variations",
             "selling_price",
             "stock_level",
             "reorder_point",

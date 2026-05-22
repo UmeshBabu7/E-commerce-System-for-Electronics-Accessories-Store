@@ -13,9 +13,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     total_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
-    available_stock = serializers.IntegerField(
-        source="product.stock_level", read_only=True
-    )
+    available_stock = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
@@ -39,6 +37,11 @@ class CartItemSerializer(serializers.ModelSerializer):
         if obj.variation:
             return f"{obj.variation.attribute}: {obj.variation.value}"
         return None
+
+    def get_available_stock(self, obj):
+        if obj.variation:
+            return obj.variation.stock_level
+        return obj.product.stock_level
 
 
 class CartSerializer(serializers.ModelSerializer):

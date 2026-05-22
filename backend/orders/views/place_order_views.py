@@ -79,7 +79,6 @@ class PlaceOrderView(APIView):
                     prev = item.product.stock_level
                     item.product.stock_level -= item.quantity
                     item.product.save()
-
                     StockAdjustment.objects.create(
                         product=item.product,
                         adjustment_type="sale",
