@@ -136,10 +136,12 @@ function OrderDetailDialog({
 }
 
 export default function OrdersPage() {
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { data, isLoading } = useAllOrders(
-    statusFilter ? { status: statusFilter } : undefined,
+    statusFilter && statusFilter !== "all"
+      ? { status: statusFilter }
+      : undefined,
   );
   const orders = data?.results ?? [];
 
@@ -152,7 +154,7 @@ export default function OrdersPage() {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
