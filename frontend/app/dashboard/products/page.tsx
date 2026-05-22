@@ -64,7 +64,7 @@ function ProductForm({
           name: product.name,
           description: product.description,
           category_ids: product.categories.map((c) => c.id),
-          cost_price: String(product.cost_price),
+          cost_price: String(product.cost_price ?? 0),
           selling_price: String(product.selling_price),
           stock_level: String(product.stock_level),
           reorder_point: String(product.reorder_point),
@@ -282,7 +282,7 @@ export default function ProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {formatCurrency(product.cost_price)}
+                        {formatCurrency(product.cost_price ?? 0)}
                       </TableCell>
                       <TableCell className="font-semibold">
                         {formatCurrency(product.selling_price)}

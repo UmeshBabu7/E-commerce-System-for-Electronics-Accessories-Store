@@ -30,15 +30,15 @@ export interface Product {
   description: string
   categories: Category[]
   variations: ProductVariation[]
-  cost_price: number
+  cost_price?: number
   selling_price: number
   stock_level: number
   reorder_point: number
   image: string | null
   is_active: boolean
   is_low_stock: boolean
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface CartItem {
@@ -53,6 +53,7 @@ export interface CartItem {
   unit_price: number
   total_price: number
   available_stock: number
+  added_at?: string
 }
 
 export interface Cart {
@@ -60,6 +61,7 @@ export interface Cart {
   items: CartItem[]
   subtotal: number
   total_items: number
+  updated_at?: string
 }
 
 export interface OrderItem {
@@ -117,6 +119,7 @@ export interface DashboardData {
   weekly_top_products: Array<{ product__id: number; product__name: string; product__sku: string; total_qty: number; total_revenue: number }>
   monthly_top_products: Array<{ product__id: number; product__name: string; product__sku: string; total_qty: number; total_revenue: number }>
   orders_by_status: Array<{ status: string; count: number }>
+  revenue_trend: Array<{ date: string; revenue: number; orders: number }>
 }
 
 export interface PaginatedResponse<T> {
