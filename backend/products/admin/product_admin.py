@@ -6,6 +6,7 @@ from .product_variation_admin import ProductVariationInline
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
+        "id",
         "sku",
         "name",
         "selling_price",

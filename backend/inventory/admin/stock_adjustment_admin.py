@@ -5,6 +5,7 @@ from inventory.models import StockAdjustment
 @admin.register(StockAdjustment)
 class StockAdjustmentAdmin(admin.ModelAdmin):
     list_display = (
+        "id",
         "product",
         "adjustment_type",
         "quantity",
