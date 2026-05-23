@@ -2,7 +2,7 @@
 import Navbar from "@/components/layout/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function ShopLayout({
   children,
@@ -11,16 +11,23 @@ export default function ShopLayout({
 }) {
   const { currentUser, isLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading) {
       if (!currentUser) {
         router.push("/auth/login");
       } else if (currentUser.role !== "customer") {
         router.push("/dashboard");
       }
     }
-  }, [currentUser, isLoading, router]);
+  }, [currentUser, isLoading, mounted, router]);
+
+  if (!mounted) return null;
 
   if (isLoading)
     return (
@@ -28,6 +35,7 @@ export default function ShopLayout({
         Loading...
       </div>
     );
+
   if (!currentUser || currentUser.role !== "customer") return null;
 
   return (
