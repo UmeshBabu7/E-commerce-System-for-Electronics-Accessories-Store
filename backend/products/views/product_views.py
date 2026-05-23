@@ -22,7 +22,19 @@ class ProductListCreateView(generics.ListCreateAPIView):
         category_id = self.request.query_params.get("category")
         in_stock = self.request.query_params.get("in_stock")
         low_stock = self.request.query_params.get("low_stock")
-        is_active = self.request.query_params.get("is_active", "true")
+        is_active = self.request.query_params.get("is_active")
+
+        user = self.request.user
+        is_admin_or_staff = (
+            user and user.is_authenticated and user.role in ["staff", "admin"]
+        )
+
+        if is_active == "true":
+            queryset = queryset.filter(is_active=True)
+        elif is_active == "false":
+            queryset = queryset.filter(is_active=False)
+        elif not is_admin_or_staff:
+            queryset = queryset.filter(is_active=True)
 
         if category_id:
             queryset = queryset.filter(categories__id=category_id)
@@ -30,10 +42,6 @@ class ProductListCreateView(generics.ListCreateAPIView):
             queryset = queryset.filter(stock_level__gt=0)
         if low_stock == "true":
             queryset = queryset.filter(stock_level__lte=F("reorder_point"))
-        if is_active == "true":
-            queryset = queryset.filter(is_active=True)
-        elif is_active == "false":
-            queryset = queryset.filter(is_active=False)
 
         return queryset
 
