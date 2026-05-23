@@ -231,7 +231,11 @@ export default function ShopProductsPage() {
               <div className="aspect-square bg-gray-100 flex items-center justify-center">
                 {product.image ? (
                   <img
-                    src={`http://localhost:8000${product.image}`}
+                    src={
+                      product.image?.startsWith("http")
+                        ? product.image
+                        : `http://localhost:8000${product.image}`
+                    }
                     alt={product.name}
                     className="h-full w-full object-cover"
                   />
