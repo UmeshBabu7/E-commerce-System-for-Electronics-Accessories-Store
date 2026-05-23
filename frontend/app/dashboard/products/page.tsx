@@ -209,7 +209,10 @@ function VariationsDialog({
 
   const { data: variations = [], isLoading } = useQuery<ProductVariation[]>({
     queryKey,
-    queryFn: () => productsApi.listVariations(product.id).then((r) => r.data),
+    queryFn: () =>
+      productsApi
+        .listVariations(product.id)
+        .then((r) => (Array.isArray(r.data) ? r.data : (r.data.results ?? []))),
     enabled: open,
   });
 
