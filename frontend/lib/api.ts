@@ -1,5 +1,5 @@
 import apiClient from "./axios"
-import type { User, Product, Cart, Order, StockAdjustment, DashboardData, PaginatedResponse, Category } from "@/types"
+import type { User, Product,ProductVariation, Cart, Order, StockAdjustment, DashboardData, PaginatedResponse, Category } from "@/types"
 
 
 export const authApi = {
@@ -39,6 +39,14 @@ export const productsApi = {
     apiClient.get<Category[]>("/products/categories/"),
   createCategory: (data: { name: string; description: string }) =>
     apiClient.post<Category>("/products/categories/", data),
+  listVariations: (productId: number) =>
+    apiClient.get<ProductVariation[]>(`/products/${productId}/variations/`),
+  createVariation: (productId: number, data: { attribute: string; value: string; additional_price: number; stock_level: number }) =>
+    apiClient.post<ProductVariation>(`/products/${productId}/variations/`, data),
+  updateVariation: (productId: number, varId: number, data: Partial<{ attribute: string; value: string; additional_price: number; stock_level: number }>) =>
+    apiClient.patch<ProductVariation>(`/products/${productId}/variations/${varId}/`, data),
+  deleteVariation: (productId: number, varId: number) =>
+    apiClient.delete(`/products/${productId}/variations/${varId}/`),
 }
 
 

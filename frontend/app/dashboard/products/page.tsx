@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Layers } from "lucide-react";
 import {
   useProducts,
   useCategories,
@@ -10,6 +10,7 @@ import {
   useUpdateProduct,
   useDeleteProduct,
 } from "@/hooks/useProducts";
+import { productsApi } from "@/lib/api";
 import { productSchema, type ProductInput } from "@/lib/schemas";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import type { Product } from "@/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/useToast";
+import type { Product, ProductVariation } from "@/types";
 
 function ProductForm({
   product,
@@ -192,10 +195,274 @@ function ProductForm({
   );
 }
 
+function VariationsDialog({
+  product,
+  open,
+  onOpenChange,
+}: {
+  product: Product;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const qc = useQueryClient();
+  const queryKey = ["variations", product.id];
+
+  const { data: variations = [], isLoading } = useQuery<ProductVariation[]>({
+    queryKey,
+    queryFn: () => productsApi.listVariations(product.id).then((r) => r.data),
+    enabled: open,
+  });
+
+  const [form, setForm] = useState({
+    attribute: "",
+    value: "",
+    additional_price: "0",
+    stock_level: "0",
+  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const resetForm = () => {
+    setForm({
+      attribute: "",
+      value: "",
+      additional_price: "0",
+      stock_level: "0",
+    });
+    setEditingId(null);
+  };
+
+  const startEdit = (v: ProductVariation) => {
+    setEditingId(v.id);
+    setForm({
+      attribute: v.attribute,
+      value: v.value,
+      additional_price: String(v.additional_price),
+      stock_level: String(v.stock_level),
+    });
+  };
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      productsApi.createVariation(product.id, {
+        attribute: form.attribute,
+        value: form.value,
+        additional_price: parseFloat(form.additional_price) || 0,
+        stock_level: parseInt(form.stock_level) || 0,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Variation added" });
+      resetForm();
+    },
+    onError: () =>
+      toast({ title: "Failed to add variation", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (varId: number) =>
+      productsApi.updateVariation(product.id, varId, {
+        attribute: form.attribute,
+        value: form.value,
+        additional_price: parseFloat(form.additional_price) || 0,
+        stock_level: parseInt(form.stock_level) || 0,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Variation updated" });
+      resetForm();
+    },
+    onError: () =>
+      toast({ title: "Failed to update variation", variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (varId: number) =>
+      productsApi.deleteVariation(product.id, varId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Variation deleted" });
+    },
+    onError: () =>
+      toast({ title: "Failed to delete variation", variant: "destructive" }),
+  });
+
+  const handleSave = () => {
+    if (!form.attribute.trim() || !form.value.trim()) {
+      toast({
+        title: "Attribute and Value are required",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (editingId !== null) updateMutation.mutate(editingId);
+    else createMutation.mutate();
+  };
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Manage Variations — {product.name}</DialogTitle>
+        </DialogHeader>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">
+              {editingId !== null ? "Edit Variation" : "Add New Variation"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>
+                  Attribute{" "}
+                  <span className="text-xs text-muted-foreground">
+                    (e.g. Color, Model)
+                  </span>
+                </Label>
+                <Input
+                  placeholder="Color"
+                  value={form.attribute}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, attribute: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>
+                  Value{" "}
+                  <span className="text-xs text-muted-foreground">
+                    (e.g. Red, iPhone 15)
+                  </span>
+                </Label>
+                <Input
+                  placeholder="Red"
+                  value={form.value}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, value: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Additional Price (NPR)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={form.additional_price}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, additional_price: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Stock Level</Label>
+                <Input
+                  type="number"
+                  value={form.stock_level}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, stock_level: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              {editingId !== null && (
+                <Button variant="outline" size="sm" onClick={resetForm}>
+                  Cancel Edit
+                </Button>
+              )}
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving
+                  ? "Saving..."
+                  : editingId !== null
+                    ? "Update Variation"
+                    : "Add Variation"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-2">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : variations.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">
+              No variations yet. Add one above.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Attribute</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Additional Price</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {variations.map((v) => (
+                  <TableRow
+                    key={v.id}
+                    className={editingId === v.id ? "bg-muted/50" : ""}
+                  >
+                    <TableCell className="font-medium">{v.attribute}</TableCell>
+                    <TableCell>{v.value}</TableCell>
+                    <TableCell>{formatCurrency(v.additional_price)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={
+                          v.stock_level === 0
+                            ? "text-red-500 font-semibold"
+                            : ""
+                        }
+                      >
+                        {v.stock_level}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => startEdit(v)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => deleteMutation.mutate(v.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
+  const [variationsProduct, setVariationsProduct] = useState<Product | null>(
+    null,
+  );
   const { data, isLoading } = useProducts(search ? { search } : undefined);
   const deleteProduct = useDeleteProduct();
 
@@ -245,6 +512,7 @@ export default function ProductsPage() {
                   <TableHead>Cost</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
+                  <TableHead>Variations</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -253,7 +521,7 @@ export default function ProductsPage() {
                 {products.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="text-center text-muted-foreground py-8"
                     >
                       No products found
@@ -299,6 +567,11 @@ export default function ProductsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {product.variations?.length ?? 0} var.
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
                         <Badge
                           variant={product.is_active ? "success" : "secondary"}
                         >
@@ -316,6 +589,7 @@ export default function ProductsPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setEditProduct(product)}
+                                title="Edit Product"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -332,11 +606,22 @@ export default function ProductsPage() {
                               )}
                             </DialogContent>
                           </Dialog>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setVariationsProduct(product)}
+                            title="Manage Variations"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Layers className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteProduct.mutate(product.id)}
                             className="text-red-500 hover:text-red-700"
+                            title="Deactivate Product"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -350,6 +635,14 @@ export default function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      {variationsProduct && (
+        <VariationsDialog
+          product={variationsProduct}
+          open={!!variationsProduct}
+          onOpenChange={(o) => !o && setVariationsProduct(null)}
+        />
+      )}
     </div>
   );
 }
